@@ -53,8 +53,16 @@ export default function ExplanationPanel({
     if (!plain) return;
 
     const utterance = new SpeechSynthesisUtterance(plain);
-    utterance.rate = 1.05;
-    utterance.pitch = 0.9;
+    utterance.rate = 0.95;
+    utterance.pitch = 1.0;
+
+    // Pick the most natural-sounding voice available
+    const voices = window.speechSynthesis.getVoices();
+    const preferred = voices.find(
+      (v) => v.name.includes("Samantha") || v.name.includes("Karen") || v.name.includes("Daniel")
+    ) || voices.find((v) => v.lang.startsWith("en") && v.localService) || voices[0];
+    if (preferred) utterance.voice = preferred;
+
     utterance.onend = () => setSpeaking(false);
     utterance.onerror = () => setSpeaking(false);
 
