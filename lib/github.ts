@@ -72,6 +72,7 @@ export async function fetchRepoData(owner: string, repo: string) {
     stars: meta.stargazers_count,
     forks: meta.forks_count,
     branches: 1,
+    contributors: 1,
   };
 
   try {
@@ -80,15 +81,29 @@ export async function fetchRepoData(owner: string, repo: string) {
       repo,
       per_page: 1,
     });
-    const link = headers.link;
-    if (link) {
-      const match = link.match(/page=(\d+)>; rel="last"/);
-      if (match) {
-        repoMeta.branches = parseInt(match[1], 10);
-      }
+    if (headers.link) {
+      const match = headers.link.match(/page=(\d+)>; rel="last"/);
+      if (match) repoMeta.branches = parseInt(match[1], 10);
     }
   } catch (err) {
     console.error("[github] Failed to fetch branch count:", err);
+  }
+
+  try {
+    const { headers, data } = await octokit.rest.repos.listContributors({
+      owner,
+      repo,
+      per_page: 1,
+      anon: "true",
+    });
+    if (headers.link) {
+      const match = headers.link.match(/page=(\d+)>; rel="last"/);
+      if (match) repoMeta.contributors = parseInt(match[1], 10);
+    } else if (data) {
+      repoMeta.contributors = data.length;
+    }
+  } catch (err) {
+    console.error("[github] Failed to fetch contributor count:", err);
   }
 
   // 2. Recursive file tree
