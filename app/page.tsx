@@ -213,7 +213,7 @@ export default function Home() {
     if (!analyzed) return;
 
     fetchSummary(currentRepoUrl.current, experienceLevel);
-    if (selectedFile) {
+    if (selectedFile && callGraph[selectedFile]) {
       fetchExplanation(
         currentRepoUrl.current,
         selectedFile,
