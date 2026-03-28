@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect, useMemo } from "react";
-import FileExplorer from "@/components/FileExplorer";
-import ExplanationPanel from "@/components/ExplanationPanel";
+import RepoTree from "@/components/RepoTree";
 import CallGraph from "@/components/CallGraph";
 import SummaryPanel from "@/components/SummaryPanel";
 import IssuesPanel from "@/components/IssuesPanel";
 import FishIcon from "@/components/FishIcon";
+import Link from "next/link";
 
 type ExperienceLevel = "junior" | "mid" | "senior";
 
@@ -266,7 +266,9 @@ export default function Home() {
       <div className="retro-shell sticky top-0 z-50 border-b-2 border-black/50">
         <div className="retro-titlebar px-3 py-2 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 min-w-0">
-            <FishIcon size={18} />
+            <Link href="/" className="shrink-0 hover:opacity-80 transition-opacity" title="Home">
+              <FishIcon size={18} />
+            </Link>
             <span className="font-bold tracking-wide uppercase truncate">
               FISHLENS :: Codebase Wide-Angle Scanner
             </span>
@@ -469,26 +471,19 @@ export default function Home() {
           <>
             <section className="retro-window">
               <div className="retro-titlebar px-3 py-1.5 flex items-center justify-between">
-                <span className="font-bold">File Explorer + Explanation Deck</span>
+                <span className="font-bold">File Explorer</span>
                 <span className="text-[11px]">Click file for deep dive</span>
               </div>
               <div className="retro-window-body p-0">
-                <div className="grid md:grid-cols-[35%_65%]" style={{ minHeight: "420px" }}>
-                  <div className="min-h-[220px] md:min-h-[420px]">
-                    <FileExplorer
-                      fileTree={fileTree}
-                      selectedFile={selectedFile}
-                      onFileSelect={handleFileSelect}
-                    />
-                  </div>
-                  <div className="border-t-2 border-black md:border-l-2 md:border-t-0 border-black/50 min-h-[220px] md:min-h-[420px]">
-                    <ExplanationPanel
-                      text={explanation}
-                      isStreaming={explanationStreaming}
-                      experienceLevel={experienceLevel}
-                      filePath={selectedFile}
-                    />
-                  </div>
+                <div style={{ minHeight: "420px" }}>
+                  <RepoTree
+                    fileTree={fileTree}
+                    repoName={repoMeta?.name ?? "repo"}
+                    onExplainRequest={handleFileSelect}
+                    explanation={explanation}
+                    explanationStreaming={explanationStreaming}
+                    experienceLevel={experienceLevel}
+                  />
                 </div>
               </div>
             </section>
