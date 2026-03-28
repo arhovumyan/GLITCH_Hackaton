@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -31,20 +31,29 @@ export default function ExplanationPanel({
   filePath,
 }: ExplanationPanelProps) {
   const [speaking, setSpeaking] = useState(false);
+  const [loadingAudio, setLoadingAudio] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioUrlRef = useRef<string | null>(null);
 
-  // Stop speech when file or text changes
+  // Stop audio when file or text changes
   useEffect(() => {
-    if (typeof window !== "undefined" && window.speechSynthesis) {
-      window.speechSynthesis.cancel();
-      setSpeaking(false);
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
     }
+    if (audioUrlRef.current) {
+      URL.revokeObjectURL(audioUrlRef.current);
+      audioUrlRef.current = null;
+    }
+    setSpeaking(false);
+    setLoadingAudio(false);
   }, [filePath, text]);
 
-  const handleSpeak = useCallback(() => {
-    if (!window.speechSynthesis) return;
-
-    if (speaking) {
-      window.speechSynthesis.cancel();
+  const handleSpeak = useCallback(async () => {
+    // Stop if already playing
+    if (speaking && audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
       setSpeaking(false);
       return;
     }
@@ -52,23 +61,40 @@ export default function ExplanationPanel({
     const plain = stripMarkdown(text);
     if (!plain) return;
 
-    const utterance = new SpeechSynthesisUtterance(plain);
-    utterance.rate = 0.95;
-    utterance.pitch = 1.0;
+    setLoadingAudio(true);
+    try {
+      const res = await fetch("/api/tts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: plain }),
+      });
 
-    // Pick the most natural-sounding voice available
-    const voices = window.speechSynthesis.getVoices();
-    const preferred = voices.find(
-      (v) => v.name.includes("Samantha") || v.name.includes("Karen") || v.name.includes("Daniel")
-    ) || voices.find((v) => v.lang.startsWith("en") && v.localService) || voices[0];
-    if (preferred) utterance.voice = preferred;
+      if (!res.ok) {
+        console.error("TTS failed:", res.status);
+        return;
+      }
 
-    utterance.onend = () => setSpeaking(false);
-    utterance.onerror = () => setSpeaking(false);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      audioUrlRef.current = url;
 
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(utterance);
-    setSpeaking(true);
+      const audio = new Audio(url);
+      audioRef.current = audio;
+      audio.onended = () => {
+        setSpeaking(false);
+        audioRef.current = null;
+      };
+      audio.onerror = () => {
+        setSpeaking(false);
+        audioRef.current = null;
+      };
+      await audio.play();
+      setSpeaking(true);
+    } catch (err) {
+      console.error("TTS error:", err);
+    } finally {
+      setLoadingAudio(false);
+    }
   }, [text, speaking]);
 
   if (!filePath && !text) {
@@ -123,10 +149,11 @@ export default function ExplanationPanel({
           <button
             type="button"
             onClick={handleSpeak}
-            className="text-[10px] px-1.5 py-0.5 font-bold bg-white/20 hover:bg-white/30 transition-colors uppercase tracking-wide"
+            disabled={loadingAudio}
+            className="text-[10px] px-1.5 py-0.5 font-bold bg-white/20 hover:bg-white/30 disabled:opacity-50 transition-colors uppercase tracking-wide"
             title={speaking ? "Stop speaking" : "Read aloud"}
           >
-            {speaking ? "Stop" : "Speak"}
+            {loadingAudio ? "Loading..." : speaking ? "Stop" : "Speak"}
           </button>
         )}
         {filePath && (
