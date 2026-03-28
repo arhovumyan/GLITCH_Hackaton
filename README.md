@@ -36,8 +36,8 @@ FISHLENS analyzes any public GitHub repository and generates interactive, AI-pow
 ### Setup
 
 ```bash
-git clone https://github.com/arhovumyan/FISHLENS_Hackaton.git
-cd FISHLENS_Hackaton
+git clone https://github.com/arhovumyan/fishlens.git
+cd fishlens
 npm install
 cp .env.local.example .env.local
 ```
