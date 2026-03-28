@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY ?? "";
-const GEMINI_TTS_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+const GEMINI_TTS_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${GEMINI_API_KEY}`;
 
 export async function POST(req: NextRequest) {
   let body: { text?: string };
@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({
         contents: [
           {
-            parts: [{ text: `Read the following explanation aloud in a clear, friendly, conversational tone. Do not add any extra commentary — just read the content naturally:\n\n${truncated}` }],
+            parts: [{ text: `Say the following in a clear, friendly tone:\n\n${truncated}` }],
           },
         ],
         generationConfig: {
@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
     if (!res.ok) {
       const err = await res.text();
       console.error("[tts] Gemini TTS failed:", res.status, err);
-      return new Response(JSON.stringify({ error: "TTS generation failed" }), {
+      return new Response(JSON.stringify({ error: "TTS generation failed", detail: err }), {
         status: 502,
         headers: { "Content-Type": "application/json" },
       });
