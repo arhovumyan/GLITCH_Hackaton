@@ -112,6 +112,7 @@ export async function GET(req: NextRequest) {
   }
 
   // Generate AI explanations — cap at MAX_GEMINI_CALLS, use cache
+  const level = experienceLevel as "junior" | "mid" | "senior";
   const issues = await Promise.all(
     mapped.map(async (issue, idx) => {
       let explanation = "";
@@ -123,7 +124,7 @@ export async function GET(req: NextRequest) {
         } else {
           const prompt = buildIssueExplanationPrompt(
             { title: issue.title, body: issue.body, labels: issue.labels },
-            experienceLevel as "junior" | "mid" | "senior" | any,
+            level,
             analysisContext?.fileTree,
             analysisContext?.repoMeta
           );

@@ -183,6 +183,10 @@ export function buildIssueExplanationPrompt(
   fileTree?: Array<{ path: string }>,
   repoMeta?: { name: string; description: string }
 ): string {
+  const repoSection = repoMeta
+    ? `\nRepository context:\n- Name: ${repoMeta.name}\n- Description: ${repoMeta.description || "No description provided."}`
+    : "";
+
   const treeSection = fileTree
     ? `\n\nRelevant files that might be related:\n${fileTree
         .map((f) => f.path)
@@ -201,6 +205,7 @@ Keep your response under 150 words. Cover:
 
 Title: ${issue.title}
 Labels: ${issue.labels.length ? issue.labels.join(", ") : "none"}
+${repoSection}
 
 Body:
 ${issue.body || "No description provided."}

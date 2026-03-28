@@ -177,6 +177,7 @@ function buildFileDiagram(
 function useZoomPan() {
   const [scale, setScale] = useState(1);
   const [translate, setTranslate] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
   const dragging = useRef(false);
   const lastPos = useRef({ x: 0, y: 0 });
 
@@ -189,6 +190,7 @@ function useZoomPan() {
   const onMouseDown = useCallback((e: React.MouseEvent) => {
     if (e.button === 1 || !(e.target as HTMLElement).closest(".node")) {
       dragging.current = true;
+      setIsDragging(true);
       lastPos.current = { x: e.clientX, y: e.clientY };
       e.preventDefault();
     }
@@ -203,6 +205,7 @@ function useZoomPan() {
   }, []);
 
   const onMouseUp = useCallback(() => {
+    setIsDragging(false);
     dragging.current = false;
   }, []);
 
@@ -223,7 +226,7 @@ function useZoomPan() {
   const style: React.CSSProperties = {
     transform: `translate(${translate.x}px, ${translate.y}px) scale(${scale})`,
     transformOrigin: "center center",
-    transition: dragging.current ? "none" : "transform 0.15s ease-out",
+    transition: isDragging ? "none" : "transform 0.15s ease-out",
   };
 
   return {
