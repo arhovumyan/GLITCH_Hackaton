@@ -757,6 +757,54 @@
   background: #000080;
 }
 
+/* --- Repo stat badges with hover tooltip --- */
+
+.retro-badge-stat {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 2px solid;
+  border-color: var(--retro-border-light) var(--retro-border-dark)
+    var(--retro-border-dark) var(--retro-border-light);
+  cursor: default;
+  transition: background 0.15s, transform 0.1s;
+  font-family: var(--font-mono);
+}
+
+.retro-badge-stat:hover {
+  transform: translateY(-1px);
+}
+
+.retro-badge-stat:active {
+  border-color: var(--retro-border-dark) var(--retro-border-light)
+    var(--retro-border-light) var(--retro-border-dark);
+  transform: translateY(0);
+}
+
+.retro-badge-tooltip {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%) scale(0.9);
+  background: #ffffe1;
+  color: #000;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border: 1px solid #000;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s, transform 0.15s;
+}
+
+.retro-badge-stat:hover .retro-badge-tooltip {
+  opacity: 1;
+  transform: translateX(-50%) scale(1);
+}
+
 /* --- Explanation panel (inline, beside the tree) --- */
 
 .retro-tree-popup-inline {

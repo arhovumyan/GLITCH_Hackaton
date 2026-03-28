@@ -379,6 +379,28 @@ export default function Home() {
                   <span className="retro-stat-value">{totalConnections}</span>
                 </div>
               </div>
+
+              {repoMeta && (
+                <div className="flex flex-wrap gap-3 mt-2">
+                  {[
+                    { icon: "\u2B50", label: "Stars", value: repoMeta.stars, bg: "bg-[#fff8dc]", hover: "hover:bg-[#fff0a0]" },
+                    { icon: "\uD83C\uDF74", label: "Forks", value: repoMeta.forks, bg: "bg-[#e8f4fd]", hover: "hover:bg-[#c8e4fd]" },
+                    { icon: "\uD83C\uDF3F", label: "Branches", value: repoMeta.branches, bg: "bg-[#e8fde8]", hover: "hover:bg-[#c0f0c0]" },
+                    { icon: "\uD83D\uDC65", label: "Contributors", value: repoMeta.contributors, bg: "bg-[#f3e8fd]", hover: "hover:bg-[#e0c8fd]" },
+                    { icon: "\uD83D\uDCBB", label: "Language", value: repoMeta.language || "N/A", bg: "bg-[#fde8e8]", hover: "hover:bg-[#fdc8c8]" },
+                  ].map((stat) => (
+                    <div
+                      key={stat.label}
+                      className={`retro-badge-stat ${stat.bg} ${stat.hover}`}
+                      title={stat.label}
+                    >
+                      <span className="text-sm">{stat.icon}</span>
+                      <span className="font-bold text-xs">{typeof stat.value === "number" ? stat.value.toLocaleString() : stat.value}</span>
+                      <span className="retro-badge-tooltip">{stat.label}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </section>
 
