@@ -2,7 +2,6 @@
 
 import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import RepoTree from "@/components/RepoTree";
-import CallGraph from "@/components/CallGraph";
 import SummaryPanel from "@/components/SummaryPanel";
 import IssuesPanel from "@/components/IssuesPanel";
 import FishIcon from "@/components/FishIcon";
@@ -485,22 +484,6 @@ export default function Home() {
                     experienceLevel={experienceLevel}
                   />
                 </div>
-              </div>
-            </section>
-
-            <section className="retro-window">
-              <div className="retro-titlebar retro-titlebar-green px-3 py-1.5 flex items-center justify-between">
-                <span className="font-bold">Dependency Tree Navigator</span>
-                <span className="text-[11px]">Repo-wide graph</span>
-              </div>
-              <div className="retro-window-body p-0" style={{ minHeight: "450px" }}>
-                <CallGraph
-                  entry={selectedFile ? callGraph[selectedFile] ?? null : null}
-                  filePath={selectedFile}
-                  dependencyGraph={dependencyGraph}
-                  callGraph={callGraph}
-                  onFileNavigate={handleFileSelect}
-                />
               </div>
             </section>
 

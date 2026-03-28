@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo, useEffect } from "react";
+import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -220,6 +220,10 @@ export default function RepoTree({
   const [popupNode, setPopupNode] = useState<TreeNode | null>(null);
   const [localContent, setLocalContent] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [speaking, setSpeaking] = useState(false);
+  const [loadingAudio, setLoadingAudio] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioUrlRef = useRef<string | null>(null);
 
   useEffect(() => setMounted(true), []);
 
@@ -246,10 +250,42 @@ export default function RepoTree({
     [onExplainRequest]
   );
 
+  const stopAudio = useCallback(() => {
+    if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
+    if (audioUrlRef.current) { URL.revokeObjectURL(audioUrlRef.current); audioUrlRef.current = null; }
+    setSpeaking(false);
+    setLoadingAudio(false);
+  }, []);
+
   const closePopup = useCallback(() => {
+    stopAudio();
     setPopupNode(null);
     setLocalContent(null);
-  }, []);
+  }, [stopAudio]);
+
+  const handleSpeak = useCallback(async (text: string) => {
+    if (speaking) { stopAudio(); return; }
+    const plain = text.replace(/```[\s\S]*?```/g, "").replace(/[*#`\[\]()]/g, "").replace(/\n{2,}/g, ". ").trim();
+    if (!plain) return;
+    setLoadingAudio(true);
+    try {
+      const res = await fetch("/api/tts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: plain }),
+      });
+      if (!res.ok) { console.error("TTS failed:", res.status); return; }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      audioUrlRef.current = url;
+      const audio = new Audio(url);
+      audioRef.current = audio;
+      audio.onended = () => { setSpeaking(false); audioRef.current = null; };
+      audio.onerror = () => { setSpeaking(false); audioRef.current = null; };
+      await audio.play();
+      setSpeaking(true);
+    } catch (err) { console.error("TTS error:", err); } finally { setLoadingAudio(false); }
+  }, [speaking, stopAudio]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -303,14 +339,27 @@ export default function RepoTree({
                     </span>
                   )}
                 </div>
-                <button
-                  type="button"
-                  onClick={closePopup}
-                  className="retro-tree-close"
-                  aria-label="Close"
-                >
-                  ✕
-                </button>
+                <div className="flex items-center gap-1 shrink-0">
+                  {(explanation || localContent) && !explanationStreaming && (
+                    <button
+                      type="button"
+                      onClick={() => handleSpeak(localContent || explanation)}
+                      disabled={loadingAudio}
+                      className="text-[9px] px-1.5 py-0.5 font-bold bg-white/20 hover:bg-white/30 disabled:opacity-50 text-white uppercase tracking-wide"
+                      title={speaking ? "Stop" : "Read aloud"}
+                    >
+                      {loadingAudio ? "..." : speaking ? "Stop" : "Speak"}
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={closePopup}
+                    className="retro-tree-close"
+                    aria-label="Close"
+                  >
+                    ✕
+                  </button>
+                </div>
               </div>
               <div className="retro-window-body p-2">
                 {popupNode.path && (
