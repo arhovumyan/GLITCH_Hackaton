@@ -49,8 +49,13 @@ export default function LandingPage() {
   const title = useScrambleText("FISHLENS", hovered);
 
   useEffect(() => {
-    setNow(new Date());
-    const id = setInterval(() => setNow(new Date()), 1000);
+    // Use a retro Y2K-era date, but with real ticking seconds
+    const fakeDate = () => {
+      const real = new Date();
+      return new Date(1999, 11, 31, real.getHours(), real.getMinutes(), real.getSeconds());
+    };
+    setNow(fakeDate());
+    const id = setInterval(() => setNow(fakeDate()), 1000);
     return () => clearInterval(id);
   }, []);
 

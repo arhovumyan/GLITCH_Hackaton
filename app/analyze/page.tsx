@@ -68,7 +68,7 @@ export default function Home() {
   const [explanationStreaming, setExplanationStreaming] = useState(false);
 
   // Visual vibe states
-  const [now, setNow] = useState(() => new Date());
+  const [now, setNow] = useState<Date | null>(null);
 
   // Abort controllers for cancellation
   const summaryAbort = useRef<AbortController | null>(null);
@@ -77,7 +77,12 @@ export default function Home() {
   const currentRepoUrl = useRef(repoUrl);
 
   useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), 1000);
+    const fakeDate = () => {
+      const real = new Date();
+      return new Date(1999, 11, 31, real.getHours(), real.getMinutes(), real.getSeconds());
+    };
+    setNow(fakeDate());
+    const id = setInterval(() => setNow(fakeDate()), 1000);
     return () => clearInterval(id);
   }, []);
 
@@ -258,7 +263,7 @@ export default function Home() {
             </span>
           </div>
           <div className="text-xs font-bold shrink-0">
-            {now.toLocaleDateString()} {now.toLocaleTimeString()}
+            {now ? `${now.toLocaleDateString()} ${now.toLocaleTimeString()}` : "\u00A0"}
           </div>
         </div>
       </div>
@@ -516,7 +521,7 @@ export default function Home() {
         <div className="retro-task-item">FISHLENS</div>
         <div className="retro-task-item">Analyzer</div>
         <div className="retro-task-clock">
-          {now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+          {now ? now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "\u00A0"}
         </div>
       </footer>
     </div>
